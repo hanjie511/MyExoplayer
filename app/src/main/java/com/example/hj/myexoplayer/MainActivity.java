@@ -16,7 +16,7 @@ import com.google.android.exoplayer2.util.Util;
 public class MainActivity extends AppCompatActivity {
     private PlayerView playerView;
     private SimpleExoPlayer simpleExoPlayer;
-    private String videoPath="https://hanjie-oos.oss-cn-shenzhen.aliyuncs.com/upload/testVideo.mp4?Expires=1593932418&OSSAccessKeyId=TMP.3KdFEzdJc4mVhaprkzZdDgDN9kiG2QMvPsSw5ZXxpZJuHju3LCpE9T8dG3H5F4ETFyNENuQc9pwnteFR2iyEGNFHU9gwVg&Signature=Yiz9zWF0p%2FSUWdZlhH%2B5YsCBnRw%3D";
+    private String videoPath="https://hanjie-oos.oss-cn-shenzhen.aliyuncs.com/upload/testVideo.mp4";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
