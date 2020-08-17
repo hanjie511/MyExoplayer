@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ComponentName;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
@@ -21,6 +22,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -111,9 +114,13 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
 
     private void initView(){
         play_stop_btn=findViewById(R.id.palyBtn);
+        play_stop_btn.setOnClickListener(this);
         previous_btn=findViewById(R.id.previouBtn);
+        previous_btn.setOnClickListener(this);
         stop_btn=findViewById(R.id.pauseBtn);
+        stop_btn.setOnClickListener(this);
         next_btn=findViewById(R.id.nextBtn);
+        next_btn.setOnClickListener(this);
         nowTime=findViewById(R.id.startTime);
         musicName=findViewById(R.id.musicName);
         totalTime=findViewById(R.id.endTime);
@@ -217,6 +224,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         int duration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
         progressBar.setMax(duration);
         totalTime.setText(DateUtils.formatElapsedTime(duration/1000));
+        Glide.with(MusicActivity.this).load(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))).into(imageView_musicActivity);
     }
     private void updateProgress() {
         if (mLastPlaybackState == null) {

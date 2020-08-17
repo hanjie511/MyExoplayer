@@ -105,7 +105,7 @@ public class MediaService extends MediaBrowserServiceCompat {
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        return BitmapFactory.decodeFile(misic_list.get(simpleExoPlayer.getCurrentWindowIndex()).getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI));
+                        return Samples.getBitmap(misic_list.get(simpleExoPlayer.getCurrentWindowIndex()).getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI));
                     }
                 }, new PlayerNotificationManager.NotificationListener() {
                     @Override
@@ -184,10 +184,10 @@ public class MediaService extends MediaBrowserServiceCompat {
                 case ExoPlayer.STATE_READY:
                     updatePlaybackState(null);
                     break;
-                case ExoPlayer.STATE_ENDED:
-                    // The media player finished playing the current song.
-                    simpleExoPlayer.next();
-                    break;
+//                case ExoPlayer.STATE_ENDED:
+//                    // The media player finished playing the current song.
+//                    simpleExoPlayer.next();
+//                    break;
             }
         }
 
