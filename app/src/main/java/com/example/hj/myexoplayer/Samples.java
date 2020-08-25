@@ -64,8 +64,8 @@ public class Samples {
 
                     //设置固定大小
                     //需要的大小
-                    float newWidth = 200f;
-                    float newHeigth = 200f;
+                    float newWidth = 150f;
+                    float newHeigth = 150f;
 
                     //图片大小
                     int width = myBitmap.getWidth();

@@ -61,11 +61,13 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
+            Log.i("message-----------:","PlaybackStateCompat发生改变");
             updatePlaybackState(state);
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
+            Log.i("message-----------:","MediaMetadataCompat发生改变");
             if (metadata != null) {
                 updateMediaDescription(metadata.getDescription());
                 updateDuration(metadata);
@@ -168,10 +170,10 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
         mediaController = new MediaControllerCompat(
                 MusicActivity.this, token);
-        if (mediaController.getMetadata() == null) {
-            finish();
-            return;
-        }
+//        if (mediaController.getMetadata() == null) {
+//            finish();
+//            return;
+//        }
         MediaControllerCompat.setMediaController(MusicActivity.this, mediaController);
         mediaController.registerCallback(mCallback);
         PlaybackStateCompat state = mediaController.getPlaybackState();
@@ -266,6 +268,18 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private void stopSeekbarUpdate() {
         if (mScheduleFuture != null) {
             mScheduleFuture.cancel(false);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaBrowser != null) {
+            mediaBrowser.disconnect();
+        }
+        MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(MusicActivity.this);
+        if (controllerCompat != null) {
+            controllerCompat.unregisterCallback(mCallback);
         }
     }
 }
