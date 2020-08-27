@@ -19,6 +19,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.media.session.MediaButtonReceiver;
 
 public class MediaNotificationManager extends BroadcastReceiver {
     private final static String ACTION_PLAY="CMD_PLAY";
@@ -37,49 +38,14 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private MediaControllerCompat mediaControllerCompat;
     private MediaControllerCompat.TransportControls transportControls;
     private PlaybackStateCompat mPlaybackState;
-    private final PendingIntent playIntent;
-    private final PendingIntent pauseIntent;
-    private final PendingIntent nextIntent;
-    private final PendingIntent preIntent;
-    private  final PendingIntent likeIntent;
-    private final PendingIntent unlikeIntent;
     private boolean isStarted=false;
     public MediaNotificationManager(MediaService mediaService) throws Exception{
         this.mediaService = mediaService;
-        String pkg=mediaService.getPackageName();
         notificationManager= (NotificationManager) mediaService.getSystemService(Context.NOTIFICATION_SERVICE);
         updateSessionToken();
-        playIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_PLAY).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        pauseIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_PAUSE).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        nextIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_NEXT).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        preIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_PRE).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        likeIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_LIKE).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        unlikeIntent=PendingIntent.getBroadcast(mediaService,REQUEST_CODE,
-                new Intent(ACTION_UNLIKE).setPackage(pkg),PendingIntent.FLAG_CANCEL_CURRENT);
-        notificationManager.cancelAll();
     }
     @Override
     public void onReceive(Context context, Intent intent) {
-        final String action=intent.getAction();
-        switch (action){
-            case ACTION_NEXT:
-                transportControls.skipToNext();
-                break;
-            case ACTION_PAUSE:
-                transportControls.pause();
-                break;
-            case ACTION_PLAY:
-                transportControls.play();
-                break;
-            case ACTION_PRE:
-                transportControls.skipToPrevious();
-                break;
-        }
     }
     private final MediaControllerCompat.Callback callback=new MediaControllerCompat.Callback() {
         @Override
@@ -148,14 +114,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
             Notification notification = createNotification();
             if (notification != null) {
                 mediaControllerCompat.registerCallback(callback);
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(ACTION_NEXT);
-                filter.addAction(ACTION_PAUSE);
-                filter.addAction(ACTION_PLAY);
-                filter.addAction(ACTION_PRE);
-                filter.addAction(ACTION_LIKE);
-                filter.addAction(ACTION_UNLIKE);
-                mediaService.registerReceiver(this, filter);
                 mediaService.startForeground(NOTIFICATION_ID, notification);
                 isStarted = true;
             }
@@ -207,20 +165,27 @@ public class MediaNotificationManager extends BroadcastReceiver {
      * @return
      */
     private int[] addActions(NotificationCompat.Builder builder){
-        builder.addAction(R.drawable.ic_outline_skip_previous_24,
-                "上一首",preIntent);
+        builder.addAction(new NotificationCompat.Action(
+                R.drawable.ic_outline_skip_previous_24,"上一曲",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(mediaService,
+                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
         if(mPlaybackState.getState()==PlaybackStateCompat.STATE_PLAYING){
-            builder.addAction(R.drawable.ic_outline_pause_circle_outline_24,
-                    "暂停",pauseIntent);
+            builder.addAction(new NotificationCompat.Action(
+                    R.drawable.ic_outline_pause_circle_outline_24,"暂停",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(mediaService,
+                            PlaybackStateCompat.ACTION_PLAY_PAUSE)));
+
         }else{
-            builder.addAction(R.drawable.ic_outline_play_circle_outline_24,
-                    "播放",playIntent);
+            builder.addAction(new NotificationCompat.Action(
+                    R.drawable.ic_outline_play_circle_outline_24,"播放",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(mediaService,
+                            PlaybackStateCompat.ACTION_PLAY)));
         }
-        builder.addAction(R.drawable.ic_outline_skip_next_24,
-                "下一首",preIntent);
-        builder.addAction(R.drawable.ic_baseline_unfavorite_border_24,
-                "喜欢",unlikeIntent);
-        return new int[]{0,1,2,3};
+        builder.addAction(new NotificationCompat.Action(
+                R.drawable.ic_outline_skip_next_24,"下一首",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(mediaService,
+                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)));
+        return new int[]{0,1,2};
     }
     /**
      * Creates Notification Channel. This is required in Android O+ to display notifications.
