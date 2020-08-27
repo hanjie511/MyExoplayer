@@ -45,6 +45,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     private PlaybackStateCompat playbackState;
     private int index=0;
     private Context context;
+    private MediaNotificationManager mediaNotificationManager;
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
@@ -69,6 +70,11 @@ public class MediaService extends MediaBrowserServiceCompat {
         mediaSession.setFlags(
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setPlaybackState(playbackState);
+        try {
+            mediaNotificationManager=new MediaNotificationManager(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //设置token后会触发MediaBrowserCompat.ConnectionCallback的回调方法
         //表示MediaBrowser与MediaBrowserService连接成功
         setSessionToken(mediaSession.getSessionToken());
@@ -83,51 +89,53 @@ public class MediaService extends MediaBrowserServiceCompat {
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(context,
                 Util.getUserAgent(context, "MyExoplayer"));
         ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
+        for (MediaMetadataCompat mc : misic_list) {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(Uri.parse(misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)));
             concatenatingMediaSource.addMediaSource(mediaSource);
-        playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(context,
-                "100", R.string.app_name, R.string.app_name, 100,
-                new PlayerNotificationManager.MediaDescriptionAdapter() {
-
-                    @Override
-                    public CharSequence getCurrentContentTitle(Player player) {
-                        return misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-                    }
-
-                    @Nullable
-                    @Override
-                    public PendingIntent createCurrentContentIntent(Player player) {
-                        Intent intent = new Intent(context, MainActivity.class);
-
-                        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    }
-
-                    @Nullable
-                    @Override
-                    public CharSequence getCurrentContentText(Player player) {
-                        return misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
-                    }
-
-                    @Nullable
-                    @Override
-                    public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        return Samples.netPicToBmp(misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI));
-                    }
-
-                }, new PlayerNotificationManager.NotificationListener() {
-                    @Override
-                    public void onNotificationCancelled(int notificationId, boolean dismissedByUser) {
-                        stopSelf();
-                    }
-
-                    @Override
-                    public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
-                        startForeground(notificationId, notification);
-                    }
-
-                });
-        playerNotificationManager.setPlayer(simpleExoPlayer);
+        }
+//        playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(context,
+//                "100", R.string.app_name, R.string.app_name, 100,
+//                new PlayerNotificationManager.MediaDescriptionAdapter() {
+//
+//                    @Override
+//                    public CharSequence getCurrentContentTitle(Player player) {
+//                        return misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+//                    }
+//
+//                    @Nullable
+//                    @Override
+//                    public PendingIntent createCurrentContentIntent(Player player) {
+//                        Intent intent = new Intent(context, MainActivity.class);
+//
+//                        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//                    }
+//
+//                    @Nullable
+//                    @Override
+//                    public CharSequence getCurrentContentText(Player player) {
+//                        return misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
+//                    }
+//
+//                    @Nullable
+//                    @Override
+//                    public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
+//                        return Samples.netPicToBmp(misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI));
+//                    }
+//
+//                }, new PlayerNotificationManager.NotificationListener() {
+//                    @Override
+//                    public void onNotificationCancelled(int notificationId, boolean dismissedByUser) {
+//                        stopSelf();
+//                    }
+//
+//                    @Override
+//                    public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
+//                        startForeground(notificationId, notification);
+//                    }
+//
+//                });
+//        playerNotificationManager.setPlayer(simpleExoPlayer);
 
         simpleExoPlayer.addListener(new ExoplayerEvnetListener());
      //   simpleExoPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
@@ -253,6 +261,7 @@ public class MediaService extends MediaBrowserServiceCompat {
                 .build();
         mediaSession.setPlaybackState(stateBuilder.build());
         mediaSession.setMetadata(metadata);
+        mediaNotificationManager.startNotification();
      //   mediaSession.setActive(true);
     }
     public int getState() {
@@ -287,6 +296,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     }
     @Override
     public void onDestroy() {
+        mediaNotificationManager.stopNotification();
         if(playerNotificationManager!=null){
             playerNotificationManager.setPlayer(null);
         }
