@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaMetadata;
 import android.os.Build;
@@ -16,6 +17,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -43,6 +45,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         this.mediaService = mediaService;
         notificationManager= (NotificationManager) mediaService.getSystemService(Context.NOTIFICATION_SERVICE);
         updateSessionToken();
+        notificationManager.cancelAll();
     }
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -50,11 +53,12 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private final MediaControllerCompat.Callback callback=new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            Log.i("message-----------:","PlaybackStateCompat发生改变");
             mPlaybackState=state;
             if(state.getState()==PlaybackStateCompat.STATE_STOPPED||
                     state.getState()==PlaybackStateCompat.STATE_NONE){
                 stopNotification();
-            }else{
+            }else if(state.getState()==PlaybackStateCompat.STATE_PLAYING){
                 Notification notification=createNotification();
                 if(notification!=null){
                     notificationManager.notify(NOTIFICATION_ID,notification);
@@ -65,6 +69,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
+            Log.i("message-----------:","MediaMetadataCompat发生改变");
             mediaMetadataCompat=metadata;
             Notification notification=createNotification();
             if(notification!=null){
@@ -90,18 +95,23 @@ public class MediaNotificationManager extends BroadcastReceiver {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         }
-        NotificationCompat.Builder notificationBuilder=new
+        final NotificationCompat.Builder notificationBuilder=new
                 NotificationCompat.Builder(mediaService,CHANNEL_ID);
         notificationBuilder.setStyle(new androidx.media.app.NotificationCompat
                 .MediaStyle().setMediaSession(meToken)
                 .setShowCancelButton(true).setShowActionsInCompactView(addActions(notificationBuilder)));
-
         notificationBuilder.setColor(Color.WHITE);
         notificationBuilder.setSmallIcon(R.drawable.ic_toolbar_24);
         notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         notificationBuilder.setContentText(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_ARTIST));
         notificationBuilder.setContentTitle(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_TITLE));
-        notificationBuilder.setLargeIcon(Samples.netPicToBmp(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)));
+        Samples.fetchBitMap(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),notificationBuilder, new Samples.FetchListener() {
+                @Override
+            public void onFetched(Bitmap bigImage) {
+                notificationBuilder.setLargeIcon(bigImage);
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+            }
+        });
         setNotificationPlaybackState(notificationBuilder);
         return notificationBuilder.build();
     }

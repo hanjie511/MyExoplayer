@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.MediaMetadata;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 public class Samples {
     public static Bitmap bitmap=null;
@@ -85,5 +87,29 @@ public class Samples {
             }
         }).start();
         return bitmap;
+    }
+    public static void fetchBitMap(final String artUrl, NotificationCompat.Builder builder,final FetchListener listener) {
+        new AsyncTask<Void, Void, Bitmap>() {
+            @Override
+            protected Bitmap doInBackground(Void[] objects) {
+                Bitmap bitmap;
+                try {
+                    bitmap=netPicToBmp(artUrl);
+                } catch (Exception e) {
+                    return null;
+                }
+                return bitmap;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                    listener.onFetched(bitmap);
+            }
+        }.execute();
+    }
+
+    public static abstract class FetchListener {
+        public abstract void onFetched(Bitmap bigImage);
+
     }
 }

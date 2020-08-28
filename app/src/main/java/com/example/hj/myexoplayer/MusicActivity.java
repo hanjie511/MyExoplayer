@@ -61,13 +61,13 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-            Log.i("message-----------:","PlaybackStateCompat发生改变");
+          //  Log.i("message-----------:","PlaybackStateCompat发生改变");
             updatePlaybackState(state);
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
-            Log.i("message-----------:","MediaMetadataCompat发生改变");
+          //  Log.i("message-----------:","MediaMetadataCompat发生改变");
             if (metadata != null) {
                 updateMediaDescription(metadata.getDescription());
                 updateDuration(metadata);

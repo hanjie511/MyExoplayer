@@ -46,6 +46,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     private PlaybackStateCompat playbackState;
     private Context context;
     private MediaNotificationManager mediaNotificationManager;
+    private QueueManager queueManager;
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
@@ -67,6 +68,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         super.onCreate();
         context = getApplicationContext();
         mediaSession=new MediaSessionCompat(this,"MediaService");
+        queueManager=new QueueManager();
         playbackState = new PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_NONE,0,1.0f)
                 .build();
@@ -83,9 +85,11 @@ public class MediaService extends MediaBrowserServiceCompat {
             e.printStackTrace();
         }
 
+        //设置token后会触发MediaBrowserCompat.ConnectionCallback的回调方法
+        //表示MediaBrowser与MediaBrowserService连接成功
+
     }
-    private void playMusic(final int index, final Context context){
-        Log.i("playMusic-index:",""+index);
+    private void playMusic(MediaMetadataCompat mediaMetadataCompat, final Context context){
         if(simpleExoPlayer!=null){
             simpleExoPlayer.release();
             simpleExoPlayer = null;
@@ -94,15 +98,13 @@ public class MediaService extends MediaBrowserServiceCompat {
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(context,
                 Util.getUserAgent(context, "MyExoplayer"));
         ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
-        for (MediaMetadataCompat mc : misic_list) {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(misic_list.get(index).getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)));
+                    .createMediaSource(Uri.parse(mediaMetadataCompat.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)));
             concatenatingMediaSource.addMediaSource(mediaSource);
-        }
-
         simpleExoPlayer.addListener(new ExoplayerEvnetListener());
         simpleExoPlayer.prepare(concatenatingMediaSource);
         simpleExoPlayer.setPlayWhenReady(true);
+        mediaNotificationManager.startNotification();
     }
     private MediaSessionCompat.Callback mediaSessionCallback=new MediaSessionCompat.Callback() {
         @Override
@@ -115,7 +117,7 @@ public class MediaService extends MediaBrowserServiceCompat {
             if (simpleExoPlayer != null) {
                 simpleExoPlayer.setPlayWhenReady(true);
             }else{
-                playMusic(MyApplication.index,context);
+                playMusic(queueManager.getCurrentMediaMetadata(),context);
             }
         }
 
@@ -128,20 +130,12 @@ public class MediaService extends MediaBrowserServiceCompat {
 
         @Override
         public void onSkipToNext() {
-            MyApplication.index++;
-            if(MyApplication.index>=3){
-                MyApplication.index=0;
-            }
-            playMusic(MyApplication.index,context);
+            playMusic(queueManager.getNextMediaMetadata(),context);
         }
 
         @Override
         public void onSkipToPrevious() {
-            MyApplication.index--;
-            if(MyApplication.index<=0){
-                MyApplication.index=0;
-            }
-            playMusic(MyApplication.index,context);
+            playMusic(queueManager.getPreviousMediaMetadata(),context);
         }
 
         @Override
@@ -166,19 +160,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             switch (playbackState) {
                 case ExoPlayer.STATE_IDLE:
-                    try {
-                        updatePlaybackState(null);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    break;
                 case ExoPlayer.STATE_BUFFERING:
-                    try {
-                        updatePlaybackState(null);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    break;
                 case ExoPlayer.STATE_READY:
                     try {
                         updatePlaybackState(null);
@@ -187,11 +169,7 @@ public class MediaService extends MediaBrowserServiceCompat {
                     }
                     break;
                 case ExoPlayer.STATE_ENDED:
-                    MyApplication.index++;
-                    if(MyApplication.index>=3){
-                        MyApplication.index=0;
-                    }
-                    playMusic(MyApplication.index,context);
+                    playMusic(queueManager.getNextMediaMetadata(),context);
                    break;
             }
         }
@@ -221,15 +199,15 @@ public class MediaService extends MediaBrowserServiceCompat {
         //noinspection ResourceType
         stateBuilder.setState(state, position, 1.0f, SystemClock.elapsedRealtime());
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, misic_list.get(MyApplication.index).getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) //id
-                .putString(MediaMetadata.METADATA_KEY_TITLE, misic_list.get(MyApplication.index).getString(MediaMetadataCompat.METADATA_KEY_TITLE))//标题
-                .putString(MediaMetadata.METADATA_KEY_ARTIST,misic_list.get(MyApplication.index).getString(MediaMetadataCompat.METADATA_KEY_ARTIST))//作者
-                .putString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI,misic_list.get(MyApplication.index).getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))//背景图片
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID,queueManager.getCurrentMediaMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) //id
+                .putString(MediaMetadata.METADATA_KEY_TITLE,queueManager.getCurrentMediaMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE))//标题
+                .putString(MediaMetadata.METADATA_KEY_ARTIST,queueManager.getCurrentMediaMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST))//作者
+                .putString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI,queueManager.getCurrentMediaMetadata().getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))//背景图片
                 .putLong(MediaMetadata.METADATA_KEY_DURATION,simpleExoPlayer.getDuration())//媒体时长
                 .build();
         mediaSession.setPlaybackState(stateBuilder.build());
         mediaSession.setMetadata(metadata);
-        mediaNotificationManager=new MediaNotificationManager(this);
+        mediaNotificationManager.startNotification();
      //   mediaSession.setActive(true);
     }
     public int getState() {
