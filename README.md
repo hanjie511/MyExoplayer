@@ -8,9 +8,9 @@ Android音视频开发之Exoplayer的应用,使用Google官方提供的新的多
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/QQ%E6%88%AA%E5%9B%BE20200830003438.png)  
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/QQ%E6%88%AA%E5%9B%BE20200830004134.png)  
 ## 项目效果  
-![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200829_224533_com.android.keyguard.jpg)  
+![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200829_224533_com.android.keyguard.jpg)
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200830_000925_com.huawei.android.lau.jpg)  
-![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200830_000934_com.example.hj.myexopl.jpg)  
+![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200830_000934_com.example.hj.myexopl.jpg)
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200830_000947_com.example.hj.myexopl.jpg)  
 
 
