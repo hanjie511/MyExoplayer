@@ -14,7 +14,7 @@ Android音视频开发之Exoplayer的应用,使用Google官方提供的新的多
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/Screenshot_20200830_000947_com.example.hj.myexopl.jpg)  
 ## 用手机浏览器扫码下载体验  
 ![](https://github.com/hanjie511/MyExoplayer/blob/master/myExoplayerQRCode.png)  
-## PS:小试牛刀，更多功能持续更新中。
+## PS:Android多媒体开发入门级实践，后续更多功能持续更新中。
 
 
 
