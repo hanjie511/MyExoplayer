@@ -12,6 +12,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaMetadata;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -30,7 +33,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private final static String ACTION_PRE="CMD_PRE";
     private final static String ACTION_LIKE="CMD_LIKE";
     private final static String ACTION_UNLIKE="CMD_UNLIKE";
-    private static final String CHANNEL_ID = "MyExoplayerChannelID";
+    private static final String CHANNEL_ID = "Hanjie";
     private static final int REQUEST_CODE=100;
     private static int NOTIFICATION_ID=666;
     private  final MediaService mediaService;
@@ -57,12 +60,22 @@ public class MediaNotificationManager extends BroadcastReceiver {
             mPlaybackState=state;
             if(state.getState()==PlaybackStateCompat.STATE_STOPPED||
                     state.getState()==PlaybackStateCompat.STATE_NONE){
-                stopNotification();
+                    //  stopNotification();
             }else if(state.getState()==PlaybackStateCompat.STATE_PLAYING){
-                Notification notification=createNotification();
-                if(notification!=null){
-                    notificationManager.notify(NOTIFICATION_ID,notification);
-                }
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Samples.fetchBitMap(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),null, new Samples.FetchListener() {
+                            @Override
+                            public void onFetched(final Bitmap bigImage) {
+                                Notification notification=createNotification(bigImage);
+                                if(notification!=null){
+                                    notificationManager.notify(NOTIFICATION_ID,notification);
+                                }
+                            }
+                        });
+                    }
+                },1000);
             }
         }
 
@@ -71,10 +84,15 @@ public class MediaNotificationManager extends BroadcastReceiver {
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             Log.i("message-----------:","MediaMetadataCompat发生改变");
             mediaMetadataCompat=metadata;
-            Notification notification=createNotification();
-            if(notification!=null){
-                notificationManager.notify(NOTIFICATION_ID,notification);
-            }
+            Samples.fetchBitMap(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),null, new Samples.FetchListener() {
+                @Override
+                public void onFetched(final Bitmap bigImage) {
+                    Notification notification=createNotification(bigImage);
+                    if(notification!=null){
+                        notificationManager.notify(NOTIFICATION_ID,notification);
+                    }
+                }
+            });
         }
 
         @Override
@@ -87,7 +105,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             }
         }
     };
-    private Notification createNotification(){
+    private Notification createNotification(Bitmap bitmap){
         if(mediaMetadataCompat==null||mPlaybackState==null){
             return null;
         }
@@ -105,13 +123,12 @@ public class MediaNotificationManager extends BroadcastReceiver {
         notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         notificationBuilder.setContentText(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_ARTIST));
         notificationBuilder.setContentTitle(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_TITLE));
-        Samples.fetchBitMap(mediaMetadataCompat.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),notificationBuilder, new Samples.FetchListener() {
-                @Override
-            public void onFetched(Bitmap bigImage) {
-                notificationBuilder.setLargeIcon(bigImage);
-                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-            }
-        });
+        notificationBuilder.setContentIntent(PendingIntent.getActivity(mediaService,REQUEST_CODE,new Intent(mediaService,MusicActivity.class),PendingIntent.FLAG_CANCEL_CURRENT));
+        notificationBuilder.setAutoCancel(true);
+        notificationBuilder.setOnlyAlertOnce(true);
+        if(bitmap!=null){
+            notificationBuilder.setLargeIcon(bitmap);
+        }
         setNotificationPlaybackState(notificationBuilder);
         return notificationBuilder.build();
     }
@@ -121,7 +138,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             mPlaybackState = mediaControllerCompat.getPlaybackState();
 
             // The notification must be updated after setting started to true
-            Notification notification = createNotification();
+            Notification notification = createNotification(null);
             if (notification != null) {
                 mediaControllerCompat.registerCallback(callback);
                 mediaService.startForeground(NOTIFICATION_ID, notification);
@@ -206,7 +223,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             NotificationChannel notificationChannel =
                     new NotificationChannel(CHANNEL_ID,
                             CHANNEL_ID,
-                            NotificationManager.IMPORTANCE_LOW);
+                            NotificationManager.IMPORTANCE_HIGH);
 
             notificationChannel.setDescription(
                     CHANNEL_ID);

@@ -2,8 +2,13 @@ package com.example.hj.myexoplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -16,7 +21,7 @@ import com.google.android.exoplayer2.util.Util;
 public class MainActivity extends AppCompatActivity {
     private PlayerView playerView;
     private SimpleExoPlayer simpleExoPlayer;
-    private String videoPath="https://hanjie-oos.oss-cn-shenzhen.aliyuncs.com/upload/testVideo.mp4";
+    private String videoPath="https://hanjie-oos.oss-cn-shenzhen.aliyuncs.com/upload/222634914-1-208.mp4";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

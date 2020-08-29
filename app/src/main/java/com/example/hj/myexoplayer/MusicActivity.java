@@ -4,7 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ComponentName;
+import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
@@ -18,12 +21,15 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.gyf.immersionbar.ImmersionBar;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,13 +67,13 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-          //  Log.i("message-----------:","PlaybackStateCompat发生改变");
+            //  Log.i("message-----------:","PlaybackStateCompat发生改变");
             updatePlaybackState(state);
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
-          //  Log.i("message-----------:","MediaMetadataCompat发生改变");
+            //  Log.i("message-----------:","MediaMetadataCompat发生改变");
             if (metadata != null) {
                 updateMediaDescription(metadata.getDescription());
                 updateDuration(metadata);
@@ -79,14 +85,14 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
             new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-                    System.out.println("mConnectionCallback:"+"开始连接");
-                    if(mediaBrowser.isConnected()){
-                        String mediaId=mediaBrowser.getRoot();
-                        System.out.println("-----------------------------mediaId:"+mediaId);
+                    System.out.println("mConnectionCallback:" + "开始连接");
+                    if (mediaBrowser.isConnected()) {
+                        String mediaId = mediaBrowser.getRoot();
+                        System.out.println("-----------------------------mediaId:" + mediaId);
                         try {
                             connectToSession(mediaBrowser.getSessionToken());
                         } catch (RemoteException e) {
-                            System.out.println("mConnectionCallback:"+"连接失败");
+                            System.out.println("mConnectionCallback:" + "连接失败");
                         }
                     }
                 }
@@ -94,13 +100,17 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void onConnectionFailed() {
                     Log.i("mConnectionCallback", "连接失败");
-                    System.out.println("mConnectionCallback:"+"连接失败");
+                    System.out.println("mConnectionCallback:" + "连接失败");
                 }
             };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
+        ImmersionBar.with(this)
+                .transparentBar()
+                .init();
         initView();
         mediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, MediaService.class), mConnectionCallback, null);
@@ -109,25 +119,27 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onStart() {
         super.onStart();
-        if(mediaBrowser!=null){
-            mediaBrowser.connect();
+        if (mediaBrowser != null) {
+            if (!mediaBrowser.isConnected()) {
+                mediaBrowser.connect();
+            }
         }
     }
 
-    private void initView(){
-        play_stop_btn=findViewById(R.id.palyBtn);
+    private void initView() {
+        play_stop_btn = findViewById(R.id.palyBtn);
         play_stop_btn.setOnClickListener(this);
-        previous_btn=findViewById(R.id.previouBtn);
+        previous_btn = findViewById(R.id.previouBtn);
         previous_btn.setOnClickListener(this);
-        stop_btn=findViewById(R.id.pauseBtn);
+        stop_btn = findViewById(R.id.pauseBtn);
         stop_btn.setOnClickListener(this);
-        next_btn=findViewById(R.id.nextBtn);
+        next_btn = findViewById(R.id.nextBtn);
         next_btn.setOnClickListener(this);
-        nowTime=findViewById(R.id.startTime);
-        musicName=findViewById(R.id.musicName);
-        totalTime=findViewById(R.id.endTime);
-        progressBar=findViewById(R.id.seekBar);
-        imageView_musicActivity=findViewById(R.id.imageView_musicActivity);
+        nowTime = findViewById(R.id.startTime);
+        musicName = findViewById(R.id.musicName);
+        totalTime = findViewById(R.id.endTime);
+        progressBar = findViewById(R.id.seekBar);
+        imageView_musicActivity = findViewById(R.id.imageView_musicActivity);
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -148,7 +160,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.palyBtn:
                 stop_btn.setVisibility(View.VISIBLE);
                 play_stop_btn.setVisibility(View.GONE);
@@ -167,6 +179,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 break;
         }
     }
+
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
         mediaController = new MediaControllerCompat(
                 MusicActivity.this, token);
@@ -189,6 +202,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
             scheduleSeekbarUpdate();
         }
     }
+
     private void updatePlaybackState(PlaybackStateCompat state) {
         if (state == null) {
             return;
@@ -219,15 +233,17 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
             default:
         }
     }
+
     private void updateDuration(MediaMetadataCompat metadata) {
         if (metadata == null) {
             return;
         }
         int duration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
         progressBar.setMax(duration);
-        totalTime.setText(DateUtils.formatElapsedTime(duration/1000));
+        totalTime.setText(DateUtils.formatElapsedTime(duration / 1000));
         Glide.with(MusicActivity.this).load(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI))).into(imageView_musicActivity);
     }
+
     private void updateProgress() {
         if (mLastPlaybackState == null) {
             return;
@@ -243,14 +259,16 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
             currentPosition += (int) timeDelta * mLastPlaybackState.getPlaybackSpeed();
         }
         progressBar.setProgress((int) currentPosition);
-        nowTime.setText(""+DateUtils.formatElapsedTime(currentPosition/1000));
+        nowTime.setText("" + DateUtils.formatElapsedTime(currentPosition / 1000));
     }
+
     private void updateMediaDescription(MediaDescriptionCompat description) {
         if (description == null) {
             return;
         }
         musicName.setText(description.getTitle());
     }
+
     private void scheduleSeekbarUpdate() {
         stopSeekbarUpdate();
         if (!mExecutorService.isShutdown()) {
@@ -281,5 +299,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         if (controllerCompat != null) {
             controllerCompat.unregisterCallback(mCallback);
         }
+        Intent intent = new Intent(MusicActivity.this, MediaService.class);
+        startService(intent);
     }
 }

@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:alpha="0.8"
         android:id="@+id/imageView_musicActivity"
         />
 <LinearLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:gravity="bottom"
+    android:layout_gravity="bottom"
     android:id="@+id/linear_musicActivity"
-    tools:context=".MusicActivity">
+    android:background="@android:color/background_dark"
+    android:alpha="0.6"
+    >
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/musicName"
             android:textSize="24sp"
+            android:textColor="@android:color/white"
             android:gravity="center"
             android:text="歌曲名称"
             />
@@ -36,6 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+
             >
             <TextView
                 android:layout_width="wrap_content"
@@ -43,6 +45,7 @@
                 android:id="@+id/startTime"
                 android:text="123"
                 android:layout_weight="1"
+                android:textColor="@android:color/white"
                 android:layout_marginStart="5dp"
                 />
             <TextView
@@ -52,6 +55,7 @@
                 android:text="123"
                 android:layout_weight="1"
                 android:gravity="end"
+                android:textColor="@android:color/white"
                 android:layout_marginEnd="5dp"
                 />
         </LinearLayout>
@@ -64,7 +68,7 @@
                 android:layout_height="48dp"
                 android:id="@+id/previouBtn"
                 android:layout_weight="1"
-                android:background="@drawable/ic_baseline_skip_previous_24"
+                android:background="@drawable/ic_baseline_skip_previous_24_while"
                 android:layout_alignParentLeft="true"
                 android:layout_marginStart="20dp"
                 />
@@ -73,7 +77,7 @@
                 android:layout_height="48dp"
                 android:id="@+id/palyBtn"
                 android:layout_centerInParent="true"
-                android:background="@drawable/ic_baseline_play_arrow_24"
+                android:background="@drawable/ic_baseline_play_circle_outline_24_white"
                 />
             <Button
                 android:layout_width="48dp"
@@ -81,13 +85,13 @@
                 android:id="@+id/pauseBtn"
                 android:layout_centerInParent="true"
                 android:visibility="gone"
-                android:background="@drawable/ic_baseline_pause_24"
+                android:background="@drawable/ic_baseline_pause_circle_outline_24_white"
                 />
             <Button
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:id="@+id/nextBtn"
-                android:background="@drawable/ic_baseline_skip_next_24"
+                android:background="@drawable/ic_baseline_skip_next_24_white"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="20dp"
                 />
